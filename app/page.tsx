@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Users,
   Mail,
@@ -24,6 +25,7 @@ import {
   X,
   ChevronDown,
   ChevronUp,
+  Target,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 
@@ -34,6 +36,7 @@ interface Contact {
   phone: string
   email: string
   group: string
+  workshopGoal: string
   createdAt: string
 }
 
@@ -50,6 +53,7 @@ export default function ContactSharingApp() {
   const [company, setCompany] = useState("")
   const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
+  const [workshopGoal, setWorkshopGoal] = useState("")
   const [selectedGroup, setSelectedGroup] = useState("")
   const [newTeamName, setNewTeamName] = useState("")
   const [editingTeamId, setEditingTeamId] = useState<string | null>(null)
@@ -104,6 +108,7 @@ export default function ContactSharingApp() {
         phone: contact.phone,
         email: contact.email,
         group: contact.group_name,
+        workshopGoal: contact.workshop_goal || "",
         createdAt: contact.created_at,
       }))
       setContacts(formattedContacts)
@@ -159,10 +164,8 @@ export default function ContactSharingApp() {
       return
     }
 
-    // Update local state
     setTeams(teams.map((team) => (team.id === teamId ? { ...team, name: newName.trim() } : team)))
 
-    // Update contacts with old team name to new team name
     const oldTeamName = teams.find((t) => t.id === teamId)?.name
     if (oldTeamName) {
       await supabase.from("contacts").update({ group_name: newName.trim() }).eq("group_name", oldTeamName)
@@ -185,12 +188,10 @@ export default function ContactSharingApp() {
 
     const supabase = createClient()
 
-    // Delete all contacts in this team first
     if (teamContacts.length > 0) {
       await supabase.from("contacts").delete().eq("group_name", teamName)
     }
 
-    // Delete the team
     const { error } = await supabase.from("teams").delete().eq("id", teamId)
 
     if (error) {
@@ -209,7 +210,7 @@ export default function ContactSharingApp() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!name || !company || !phone || !email || !selectedGroup) {
+    if (!name || !company || !phone || !email || !selectedGroup || !workshopGoal) {
       alert("모든 필드를 입력해주세요.")
       return
     }
@@ -225,6 +226,7 @@ export default function ContactSharingApp() {
         company,
         phone,
         email,
+        workshop_goal: workshopGoal,
       })
       .select()
       .single()
@@ -248,6 +250,7 @@ export default function ContactSharingApp() {
         phone: data.phone,
         email: data.email,
         group: data.group_name,
+        workshopGoal: data.workshop_goal || "",
         createdAt: data.created_at,
       }
       setContacts([newContact, ...contacts])
@@ -257,6 +260,7 @@ export default function ContactSharingApp() {
     setCompany("")
     setPhone("")
     setEmail("")
+    setWorkshopGoal("")
     setIsLoading(false)
   }
 
@@ -280,8 +284,14 @@ export default function ContactSharingApp() {
     const groupData = contacts.filter((c) => c.group === selectedGroup)
 
     const BOM = "\uFEFF"
-    const headers = ["이름", "회사명", "전화번호", "이메일"]
-    const rows = groupData.map((contact) => [contact.name, contact.company, contact.phone, contact.email])
+    const headers = ["이름", "회사명", "전화번호", "이메일", "워크샵 목표"]
+    const rows = groupData.map((contact) => [
+      contact.name,
+      contact.company,
+      contact.phone,
+      contact.email,
+      contact.workshopGoal,
+    ])
 
     const csvContent =
       BOM +
@@ -306,14 +316,11 @@ export default function ContactSharingApp() {
   }
 
   const formatPhoneNumber = (value: string) => {
-    // Remove all non-digit characters
     const numbers = value.replace(/[^\d]/g, "")
 
-    // Format based on length and pattern
     if (numbers.length <= 3) {
       return numbers
     } else if (numbers.startsWith("02")) {
-      // Seoul landline: 02-XXX-XXXX or 02-XXXX-XXXX
       if (numbers.length <= 5) {
         return `${numbers.slice(0, 2)}-${numbers.slice(2)}`
       } else if (numbers.length <= 9) {
@@ -322,7 +329,6 @@ export default function ContactSharingApp() {
         return `${numbers.slice(0, 2)}-${numbers.slice(2, 6)}-${numbers.slice(6, 10)}`
       }
     } else if (numbers.startsWith("0")) {
-      // Other area codes: 0XX-XXX-XXXX or 0XX-XXXX-XXXX
       if (numbers.length <= 6) {
         return `${numbers.slice(0, 3)}-${numbers.slice(3)}`
       } else if (numbers.length <= 10) {
@@ -331,7 +337,6 @@ export default function ContactSharingApp() {
         return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`
       }
     } else {
-      // Default formatting
       if (numbers.length <= 7) {
         return `${numbers.slice(0, 3)}-${numbers.slice(3)}`
       } else {
@@ -576,6 +581,12 @@ export default function ContactSharingApp() {
                                         <Mail className="w-3 h-3 text-orange-500" />
                                         <span>{contact.email}</span>
                                       </div>
+                                      {contact.workshopGoal && (
+                                        <div className="flex items-start gap-2 text-xs text-gray-600 mt-2 pt-2 border-t border-gray-100">
+                                          <Target className="w-3 h-3 text-sky-500 mt-0.5 flex-shrink-0" />
+                                          <span className="line-clamp-2">{contact.workshopGoal}</span>
+                                        </div>
+                                      )}
                                     </div>
                                     <Button
                                       variant="ghost"
@@ -707,6 +718,23 @@ export default function ContactSharingApp() {
                   </div>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="workshopGoal" className="text-sm font-semibold text-gray-700">
+                    플레이워크샵을 통해 얻어가고 싶은 것
+                  </Label>
+                  <div className="relative">
+                    <Target className="absolute left-3 top-3 w-4 h-4 text-orange-500" />
+                    <Textarea
+                      id="workshopGoal"
+                      value={workshopGoal}
+                      onChange={(e) => setWorkshopGoal(e.target.value)}
+                      placeholder="워크샵을 통해 얻고 싶은 것을 자유롭게 작성해주세요"
+                      className="pl-10 min-h-[100px] border-2 border-gray-200 focus:border-orange-400 resize-none"
+                      rows={4}
+                    />
+                  </div>
+                </div>
+
                 <Button
                   type="submit"
                   disabled={isLoading || teams.length === 0}
@@ -783,6 +811,15 @@ export default function ContactSharingApp() {
                             <Mail className="w-3.5 h-3.5 text-orange-500" />
                             <span>{contact.email}</span>
                           </div>
+                          {contact.workshopGoal && (
+                            <div className="flex items-start gap-2 text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200">
+                              <Target className="w-3.5 h-3.5 text-orange-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="text-xs font-semibold text-gray-500 mb-1">워크샵 목표</p>
+                                <p className="text-sm">{contact.workshopGoal}</p>
+                              </div>
+                            </div>
+                          )}
                         </div>
                         <Button
                           variant="ghost"
