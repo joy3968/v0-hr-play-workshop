@@ -436,7 +436,7 @@ export default function ContactSharingApp() {
 
           <h1 className="text-3xl font-bold mb-3 text-balance">
             <span className="bg-gradient-to-r from-sky-600 via-blue-600 to-orange-600 bg-clip-text text-transparent">
-              컨택트허브
+              Play Connect
             </span>
           </h1>
           <p className="text-sm text-gray-700 text-pretty max-w-2xl mx-auto">
