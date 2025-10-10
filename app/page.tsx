@@ -720,7 +720,7 @@ export default function ContactSharingApp() {
 
                 <div className="space-y-2">
                   <Label htmlFor="workshopGoal" className="text-sm font-semibold text-gray-700">
-                    플레이워크샵을 통해 얻어가고 싶은 것
+                    플레이워크샵을 통해 무엇을 얻어가고 싶나요
                   </Label>
                   <div className="relative">
                     <Target className="absolute left-3 top-3 w-4 h-4 text-orange-500" />
