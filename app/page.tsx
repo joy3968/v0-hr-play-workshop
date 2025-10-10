@@ -61,6 +61,7 @@ export default function ContactSharingApp() {
   const [isLoading, setIsLoading] = useState(false)
   const [tableExists, setTableExists] = useState(true)
   const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null)
+  const [isTeamManagementOpen, setIsTeamManagementOpen] = useState(false)
 
   useEffect(() => {
     fetchTeams()
@@ -447,168 +448,182 @@ export default function ContactSharingApp() {
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-xl relative overflow-hidden mb-8">
           <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-sky-500/5" />
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 via-purple-500 to-sky-500" />
-          <CardHeader className="relative">
-            <CardTitle className="text-2xl bg-gradient-to-r from-orange-600 to-sky-600 bg-clip-text text-transparent flex items-center gap-2">
-              <Users className="w-5 h-5 text-sky-500" />팀 관리
-            </CardTitle>
-            <CardDescription className="text-sm">먼저 팀을 생성하고 관리하세요</CardDescription>
-          </CardHeader>
-          <CardContent className="relative">
-            <form onSubmit={createTeam} className="flex gap-2 mb-6">
-              <Input
-                value={newTeamName}
-                onChange={(e) => setNewTeamName(e.target.value)}
-                placeholder="새 팀 이름 입력 (예: 개발팀, 마케팅팀)"
-                className="h-10 border-2 border-gray-200 focus:border-sky-400"
-              />
-              <Button
-                type="submit"
-                className="bg-gradient-to-r from-sky-500 to-orange-500 hover:from-sky-600 hover:to-orange-600 whitespace-nowrap"
-              >
-                <Plus className="w-4 h-4 mr-2" />팀 추가
-              </Button>
-            </form>
-
-            {teams.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Users className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-                <p className="text-sm">생성된 팀이 없습니다. 먼저 팀을 추가해주세요.</p>
+          <CardHeader
+            className="relative cursor-pointer hover:bg-gray-50/50 transition-colors"
+            onClick={() => setIsTeamManagementOpen(!isTeamManagementOpen)}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-2xl bg-gradient-to-r from-orange-600 to-sky-600 bg-clip-text text-transparent flex items-center gap-2">
+                  <Users className="w-5 h-5 text-sky-500" />팀 관리
+                </CardTitle>
+                <CardDescription className="text-sm">먼저 팀을 생성하고 관리하세요</CardDescription>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {teams.map((team) => {
-                  const teamContacts = contacts.filter((c) => c.group === team.name)
-                  const isExpanded = expandedTeamId === team.id
+              {isTeamManagementOpen ? (
+                <ChevronUp className="w-6 h-6 text-gray-400" />
+              ) : (
+                <ChevronDown className="w-6 h-6 text-gray-400" />
+              )}
+            </div>
+          </CardHeader>
+          {isTeamManagementOpen && (
+            <CardContent className="relative">
+              <form onSubmit={createTeam} className="flex gap-2 mb-6">
+                <Input
+                  value={newTeamName}
+                  onChange={(e) => setNewTeamName(e.target.value)}
+                  placeholder="새 팀 이름 입력 (예: 개발팀, 마케팅팀)"
+                  className="h-10 border-2 border-gray-200 focus:border-sky-400"
+                />
+                <Button
+                  type="submit"
+                  className="bg-gradient-to-r from-sky-500 to-orange-500 hover:from-sky-600 hover:to-orange-600 whitespace-nowrap"
+                >
+                  <Plus className="w-4 h-4 mr-2" />팀 추가
+                </Button>
+              </form>
 
-                  return (
-                    <div key={team.id} className="rounded-lg border-2 border-gray-100 bg-white overflow-hidden">
-                      <div
-                        className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                        onClick={() => setExpandedTeamId(isExpanded ? null : team.id)}
-                      >
-                        {editingTeamId === team.id ? (
-                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                            <Input
-                              value={editingTeamName}
-                              onChange={(e) => setEditingTeamName(e.target.value)}
-                              className="h-8 text-sm"
-                              autoFocus
-                            />
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
-                              onClick={() => updateTeam(team.id, editingTeamName)}
-                            >
-                              <Check className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8 text-gray-600 hover:text-gray-700 hover:bg-gray-50"
-                              onClick={() => {
-                                setEditingTeamId(null)
-                                setEditingTeamName("")
-                              }}
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3 flex-1">
-                              {isExpanded ? (
-                                <ChevronUp className="w-5 h-5 text-gray-400" />
-                              ) : (
-                                <ChevronDown className="w-5 h-5 text-gray-400" />
-                              )}
-                              <div>
-                                <h3 className="font-semibold text-gray-900">{team.name}</h3>
-                                <p className="text-xs text-gray-500 mt-1">{teamContacts.length}명의 연락처</p>
-                              </div>
-                            </div>
-                            <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+              {teams.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Users className="w-10 h-10 mx-auto mb-3 text-gray-300" />
+                  <p className="text-sm">생성된 팀이 없습니다. 먼저 팀을 추가해주세요.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {teams.map((team) => {
+                    const teamContacts = contacts.filter((c) => c.group === team.name)
+                    const isExpanded = expandedTeamId === team.id
+
+                    return (
+                      <div key={team.id} className="rounded-lg border-2 border-gray-100 bg-white overflow-hidden">
+                        <div
+                          className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                          onClick={() => setExpandedTeamId(isExpanded ? null : team.id)}
+                        >
+                          {editingTeamId === team.id ? (
+                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                              <Input
+                                value={editingTeamName}
+                                onChange={(e) => setEditingTeamName(e.target.value)}
+                                className="h-8 text-sm"
+                                autoFocus
+                              />
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                className="h-8 w-8 text-sky-600 hover:text-sky-700 hover:bg-sky-50"
+                                className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                onClick={() => updateTeam(team.id, editingTeamName)}
+                              >
+                                <Check className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 text-gray-600 hover:text-gray-700 hover:bg-gray-50"
                                 onClick={() => {
-                                  setEditingTeamId(team.id)
-                                  setEditingTeamName(team.name)
+                                  setEditingTeamId(null)
+                                  setEditingTeamName("")
                                 }}
                               >
-                                <Edit2 className="w-3.5 h-3.5" />
+                                <X className="w-4 h-4" />
                               </Button>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => deleteTeam(team.id, team.name)}
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {isExpanded && (
-                        <div className="border-t border-gray-100 bg-gray-50/50 p-4">
-                          {teamContacts.length === 0 ? (
-                            <div className="text-center py-8 text-gray-500">
-                              <Users className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                              <p className="text-sm">아직 연락처가 없습니다</p>
                             </div>
                           ) : (
-                            <div className="space-y-3">
-                              {teamContacts.map((contact) => (
-                                <div
-                                  key={contact.id}
-                                  className="p-3 rounded-lg border border-gray-200 bg-white hover:shadow-md transition-all"
-                                >
-                                  <div className="flex items-start justify-between">
-                                    <div className="space-y-1 flex-1">
-                                      <h4 className="font-semibold text-gray-900">{contact.name}</h4>
-                                      <div className="flex items-center gap-2 text-xs text-gray-600">
-                                        <Building2 className="w-3 h-3 text-orange-500" />
-                                        <span>{contact.company}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2 text-xs text-gray-600">
-                                        <Phone className="w-3 h-3 text-sky-500" />
-                                        <span>{contact.phone}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2 text-xs text-gray-600">
-                                        <Mail className="w-3 h-3 text-orange-500" />
-                                        <span>{contact.email}</span>
-                                      </div>
-                                      {contact.workshopGoal && (
-                                        <div className="flex items-start gap-2 text-xs text-gray-600 mt-2 pt-2 border-t border-gray-100">
-                                          <Target className="w-3 h-3 text-sky-500 mt-0.5 flex-shrink-0" />
-                                          <span className="line-clamp-2">{contact.workshopGoal}</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => deleteContact(contact.id)}
-                                      className="h-7 w-7 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </Button>
-                                  </div>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3 flex-1">
+                                {isExpanded ? (
+                                  <ChevronUp className="w-5 h-5 text-gray-400" />
+                                ) : (
+                                  <ChevronDown className="w-5 h-5 text-gray-400" />
+                                )}
+                                <div>
+                                  <h3 className="font-semibold text-gray-900">{team.name}</h3>
+                                  <p className="text-xs text-gray-500 mt-1">{teamContacts.length}명의 연락처</p>
                                 </div>
-                              ))}
+                              </div>
+                              <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-sky-600 hover:text-sky-700 hover:bg-sky-50"
+                                  onClick={() => {
+                                    setEditingTeamId(team.id)
+                                    setEditingTeamName(team.name)
+                                  }}
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  onClick={() => deleteTeam(team.id, team.name)}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              </div>
                             </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </CardContent>
+
+                        {isExpanded && (
+                          <div className="border-t border-gray-100 bg-gray-50/50 p-4">
+                            {teamContacts.length === 0 ? (
+                              <div className="text-center py-8 text-gray-500">
+                                <Users className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                                <p className="text-sm">아직 연락처가 없습니다</p>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                {teamContacts.map((contact) => (
+                                  <div
+                                    key={contact.id}
+                                    className="p-3 rounded-lg border border-gray-200 bg-white hover:shadow-md transition-all"
+                                  >
+                                    <div className="flex items-start justify-between">
+                                      <div className="space-y-1 flex-1">
+                                        <h4 className="font-semibold text-gray-900">{contact.name}</h4>
+                                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                                          <Building2 className="w-3 h-3 text-orange-500" />
+                                          <span>{contact.company}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                                          <Phone className="w-3 h-3 text-sky-500" />
+                                          <span>{contact.phone}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                                          <Mail className="w-3 h-3 text-orange-500" />
+                                          <span>{contact.email}</span>
+                                        </div>
+                                        {contact.workshopGoal && (
+                                          <div className="flex items-start gap-2 text-xs text-gray-600 mt-2 pt-2 border-t border-gray-100">
+                                            <Target className="w-3 h-3 text-sky-500 mt-0.5 flex-shrink-0" />
+                                            <span className="line-clamp-2">{contact.workshopGoal}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => deleteContact(contact.id)}
+                                        className="h-7 w-7 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </CardContent>
+          )}
         </Card>
 
         <div className="grid lg:grid-cols-2 gap-8">
