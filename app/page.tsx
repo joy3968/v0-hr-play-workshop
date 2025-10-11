@@ -424,12 +424,12 @@ export default function ContactSharingApp() {
 
           <div className="mb-4">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-lg mb-4">
-              <span className="text-base font-bold bg-gradient-to-r from-sky-600 to-sky-700 bg-clip-text text-transparent">
-                GS
-              </span>
-              <span className="text-sm text-gray-400">×</span>
               <span className="text-base font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
                 캐럿글로벌
+              </span>
+              <span className="text-sm text-gray-400">×</span>
+              <span className="text-base font-bold bg-gradient-to-r from-sky-600 to-sky-700 bg-clip-text text-transparent">
+                GS
               </span>
               <span className="text-base font-bold text-black">플레이 워크샵</span>
             </div>
@@ -437,7 +437,7 @@ export default function ContactSharingApp() {
 
           <h1 className="text-3xl font-bold mb-3 text-balance">
             <span className="bg-gradient-to-r from-sky-600 via-blue-600 to-orange-600 bg-clip-text text-transparent">
-              Play Connect
+              PLAI Connect
             </span>
           </h1>
           <p className="text-sm text-gray-700 text-pretty max-w-2xl mx-auto">
