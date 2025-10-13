@@ -735,7 +735,7 @@ export default function ContactSharingApp() {
 
                 <div className="space-y-2">
                   <Label htmlFor="workshopGoal" className="text-sm font-semibold text-gray-700">
-                    플레이워크샵을 통해 무엇을 얻어가고 싶나요
+                    오늘 배운 내용 중 우리 팀/조직의 어떤 업무에 가장 먼저 적용해보고 싶으신가요?
                   </Label>
                   <div className="relative">
                     <Target className="absolute left-3 top-3 w-4 h-4 text-orange-500" />
@@ -743,7 +743,7 @@ export default function ContactSharingApp() {
                       id="workshopGoal"
                       value={workshopGoal}
                       onChange={(e) => setWorkshopGoal(e.target.value)}
-                      placeholder="워크샵을 통해 얻고 싶은 것을 자유롭게 작성해주세요"
+                      placeholder="오늘 배운 내용을 적용하고 싶은 업무를 자유롭게 작성해주세요"
                       className="pl-10 min-h-[100px] border-2 border-gray-200 focus:border-orange-400 resize-none"
                       rows={4}
                     />
