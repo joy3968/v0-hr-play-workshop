@@ -285,7 +285,7 @@ export default function ContactSharingApp() {
     const groupData = contacts.filter((c) => c.group === selectedGroup)
 
     const BOM = "\uFEFF"
-    const headers = ["이름", "회사명", "전화번호", "이메일", "워크샵 목표"]
+    const headers = ["이름", "회사명", "전화번호", "이메일", "우리 팀에 바로 적용할 수 있는 부분은?"]
     const rows = groupData.map((contact) => [
       contact.name,
       contact.company,
@@ -598,7 +598,7 @@ export default function ContactSharingApp() {
                                         {contact.workshopGoal && (
                                           <div className="flex items-start gap-2 text-xs text-gray-600 mt-2 pt-2 border-t border-gray-100">
                                             <Target className="w-3 h-3 text-sky-500 mt-0.5 flex-shrink-0" />
-                                            <span className="line-clamp-2">{contact.workshopGoal}</span>
+                                            <span className="whitespace-pre-wrap">{contact.workshopGoal}</span>
                                           </div>
                                         )}
                                       </div>
@@ -830,8 +830,8 @@ export default function ContactSharingApp() {
                             <div className="flex items-start gap-2 text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200">
                               <Target className="w-3.5 h-3.5 text-orange-500 mt-0.5 flex-shrink-0" />
                               <div>
-                                <p className="text-xs font-semibold text-gray-500 mb-1">워크샵 목표</p>
-                                <p className="text-sm">{contact.workshopGoal}</p>
+                                <p className="text-xs font-semibold text-gray-500 mb-1">우리 팀에 바로 적용할 수 있는 부분은?</p>
+                                <p className="text-sm whitespace-pre-wrap">{contact.workshopGoal}</p>
                               </div>
                             </div>
                           )}
