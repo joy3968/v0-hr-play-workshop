@@ -26,8 +26,11 @@ import {
   ChevronDown,
   ChevronUp,
   Target,
+  FileText,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import html2canvas from "html2canvas-pro"
+import jsPDF from "jspdf"
 
 interface Contact {
   id: string
@@ -60,7 +63,7 @@ export default function ContactSharingApp() {
   const [editingTeamName, setEditingTeamName] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [tableExists, setTableExists] = useState(true)
-  const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null)
+  const [expandedTeamIds, setExpandedTeamIds] = useState<Set<string>>(new Set())
   const [isTeamManagementOpen, setIsTeamManagementOpen] = useState(false)
 
   useEffect(() => {
@@ -206,6 +209,12 @@ export default function ContactSharingApp() {
     if (selectedGroup === teamName) {
       setSelectedGroup("")
     }
+
+    setExpandedTeamIds((prev) => {
+      const newSet = new Set(prev)
+      newSet.delete(teamId)
+      return newSet
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -316,6 +325,72 @@ export default function ContactSharingApp() {
     URL.revokeObjectURL(url)
   }
 
+  const exportToPDF = async () => {
+    try {
+      console.log("[v0] Starting PDF export...")
+
+      window.scrollTo(0, 0)
+      await new Promise((resolve) => setTimeout(resolve, 300))
+
+      const element = (document.querySelector(".container") as HTMLElement) || document.body
+
+      const canvas = await html2canvas(element, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
+        imageTimeout: 0,
+        removeContainer: true,
+      })
+
+      console.log("[v0] Canvas captured, generating PDF...")
+
+      const imgData = canvas.toDataURL("image/png", 1.0)
+
+      const imgWidth = canvas.width
+      const imgHeight = canvas.height
+
+      // Calculate PDF dimensions in mm (A4 is 210x297mm)
+      const pdfWidth = 210
+      const pdfHeight = (imgHeight * pdfWidth) / imgWidth
+
+      const pdf = new jsPDF({
+        orientation: pdfHeight > pdfWidth ? "portrait" : "landscape",
+        unit: "mm",
+        format: pdfHeight > 297 ? [pdfWidth, pdfHeight] : "a4",
+      })
+
+      if (pdfHeight > 297) {
+        // Multiple pages needed
+        let heightLeft = pdfHeight
+        let position = 0
+
+        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight, undefined, "FAST")
+        heightLeft -= 297
+
+        while (heightLeft > 0) {
+          position = heightLeft - pdfHeight
+          pdf.addPage()
+          pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight, undefined, "FAST")
+          heightLeft -= 297
+        }
+      } else {
+        // Single page
+        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight, undefined, "FAST")
+      }
+
+      pdf.save("PLAI-Connect-연락처.pdf")
+
+      console.log("[v0] PDF saved successfully")
+    } catch (error) {
+      console.error("[v0] Error generating PDF:", error)
+      alert("PDF 생성 중 오류가 발생했습니다. 다시 시도해주세요.")
+    }
+  }
+
   const formatPhoneNumber = (value: string) => {
     const numbers = value.replace(/[^\d]/g, "")
 
@@ -349,6 +424,18 @@ export default function ContactSharingApp() {
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatPhoneNumber(e.target.value)
     setPhone(formatted)
+  }
+
+  const toggleTeamExpansion = (teamId: string) => {
+    setExpandedTeamIds((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(teamId)) {
+        newSet.delete(teamId)
+      } else {
+        newSet.add(teamId)
+      }
+      return newSet
+    })
   }
 
   if (!tableExists) {
@@ -492,13 +579,13 @@ export default function ContactSharingApp() {
                 <div className="space-y-3">
                   {teams.map((team) => {
                     const teamContacts = contacts.filter((c) => c.group === team.name)
-                    const isExpanded = expandedTeamId === team.id
+                    const isExpanded = expandedTeamIds.has(team.id)
 
                     return (
                       <div key={team.id} className="rounded-lg border-2 border-gray-100 bg-white overflow-hidden">
                         <div
                           className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                          onClick={() => setExpandedTeamId(isExpanded ? null : team.id)}
+                          onClick={() => toggleTeamExpansion(team.id)}
                         >
                           {editingTeamId === team.id ? (
                             <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
@@ -827,10 +914,12 @@ export default function ContactSharingApp() {
                             <span>{contact.email}</span>
                           </div>
                           {contact.workshopGoal && (
-                            <div className="flex items-start gap-2 text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200">
-                              <Target className="w-3.5 h-3.5 text-orange-500 mt-0.5 flex-shrink-0" />
+                            <div className="flex items-start gap-2 text-sm text-gray-600 mt-3 pt-3 border-t border-gray-100">
+                              <Target className="w-3.5 h-3.5 text-sky-500 mt-0.5 flex-shrink-0" />
                               <div>
-                                <p className="text-xs font-semibold text-gray-500 mb-1">우리 팀에 바로 적용할 수 있는 부분은?</p>
+                                <p className="text-xs font-semibold text-gray-500 mb-1">
+                                  우리 팀에 바로 적용할 수 있는 부분은?
+                                </p>
                                 <p className="text-sm whitespace-pre-wrap">{contact.workshopGoal}</p>
                               </div>
                             </div>
@@ -853,6 +942,17 @@ export default function ContactSharingApp() {
           </Card>
         </div>
       </div>
+
+      {contacts.length > 0 && (
+        <Button
+          onClick={exportToPDF}
+          className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-2xl bg-gradient-to-r from-orange-500 to-sky-500 hover:from-orange-600 hover:to-sky-600 hover:scale-110 transition-all duration-300 z-50"
+          size="icon"
+          title="PDF로 다운로드"
+        >
+          <FileText className="w-5 h-5" />
+        </Button>
+      )}
     </div>
   )
 }
